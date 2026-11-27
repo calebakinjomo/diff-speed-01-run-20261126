@@ -102,6 +102,10 @@ function myersSearch(a, b, base, n, m) {
   snaps.push(vCur.slice(off, off + 1));
   if (x === n && y === m) return { d: 0, k: 0, snaps };
 
+  // The snake's ends, hoisted out of the depth loop: the inner snake below
+  // walks absolute indices against these instead of adding `base` per step.
+  const aEnd = base + n;
+  const bEnd = base + m;
   for (let d = 1; d <= n + m; d++) {
     const tmp = vPrev;
     vPrev = vCur;
@@ -122,11 +126,16 @@ function myersSearch(a, b, base, n, m) {
         continue;
       }
       let xx = xDel !== DEAD && (xIns === DEAD || xDel >= xIns) ? xDel : xIns;
-      let yy = xx - k;
-      while (xx < n && yy < m && a[base + xx] === b[base + yy]) {
-        xx++;
-        yy++;
+      // The snake walks absolute indices ax/ay (ay is always ax - k), so the
+      // loop adds nothing per step instead of recomputing base + xx / base + yy.
+      let ax = base + xx;
+      let ay = ax - k;
+      while (ax < aEnd && ay < bEnd && a[ax] === b[ay]) {
+        ax++;
+        ay++;
       }
+      xx = ax - base;
+      const yy = xx - k;
       vCur[idx] = xx;
       if (xx === n && yy === m) {
         snaps.push(vCur.slice(off - d, off + d + 1));
